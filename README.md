@@ -6,7 +6,7 @@ A simple multi processing logger.
 Usage
 -----
 
-You can simply use the mplogger.rolling.MPRotatingFileHandler or mplogger.rolling.MPTimedRotatingFileHandler
+You can simply use the `mplogger.rolling.MPRotatingFileHandler` or `mplogger.rolling.MPTimedRotatingFileHandler`
  in place of the original handlers.
 
 E.g.
