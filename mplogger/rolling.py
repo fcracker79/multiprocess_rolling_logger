@@ -1,7 +1,5 @@
 from logging import handlers, LogRecord
 import fcntl
-import os
-import sys
 
 
 def mprolling(supertype, *args, **kwargs):
@@ -13,25 +11,20 @@ def mprolling(supertype, *args, **kwargs):
         def doRollover(self):
             try:
                 fcntl.flock(self.fd, fcntl.LOCK_EX)
-                print('DENTRO{}'.format(os.getpid()))
-                sys.stdout.flush()
                 if self.shouldRollover(LogRecord(None, None, None, None, None, None, None)):
-                    print('\tROLLOVER{}'.format(os.getpid()))
-                    sys.stdout.flush()
-                    print('\tROLLOVER END{}'.format(os.getpid()))
                     supertype.doRollover(self)
             finally:
                 fcntl.flock(self.fd, fcntl.LOCK_UN)
-                print('FUORI{}'.format(os.getpid()))
-                sys.stdout.flush()
 
         def close(self):
             self.fd.close()
 
     return _MP(*args, **kwargs)
 
+
 def MPRotatingFileHandler(*args, **kwargs):
     return mprolling(handlers.RotatingFileHandler, *args, **kwargs)
+
 
 def MPTimedRotatingFileHandler(*args, **kwargs):
     return mprolling(handlers.TimedRotatingFileHandler, *args, **kwargs)

@@ -1,5 +1,6 @@
 import logging
 from multiprocessing import Barrier
+import os
 import tempfile
 from unittest import TestCase
 from multiprocessing import Process
@@ -34,4 +35,8 @@ class TestRotating(TestCase):
             p.start()
 
         b.wait()
+
+        base_filename = os.path.basename(filename)
+        count = len([x for x in os.listdir(os.path.dirname(filename)) if base_filename in x])
+        self.assertEqual(20, count)
         print('End')
