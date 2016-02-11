@@ -2,21 +2,30 @@ import logging
 from multiprocessing import Barrier
 import os
 import tempfile
+from time import sleep
 from unittest import TestCase
 from multiprocessing import Process
+
 from mplogger import rolling
+
+
+def _file_len(fname):
+    i = 0
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
 
 
 class TestRotating(TestCase):
     FILE_SIZE = 20
-    FILE_COUNT = 10
+    FILE_COUNT = 100
     PROCESS_COUNT = 20
 
     def test(self):
         filename = str(tempfile.mktemp())
-        print(filename)
 
-        def process(count: int, barrier: Barrier):
+        def process(cur_count: int, barrier: Barrier):
             try:
                 logger = logging.Logger('a logger')
                 handler = rolling.MPRotatingFileHandler(
@@ -24,7 +33,10 @@ class TestRotating(TestCase):
                 )
                 logger.setLevel(20)
                 logger.addHandler(handler)
-                logger.info('A nice process: {}'.format(count))
+                sleep(1)  # This is just to simulate presence of handlers
+                s = 'Proc {}, Pid {}'.format(cur_count, os.getpid())
+                s += '*' * (self.FILE_SIZE - len(s) - 2)
+                logger.info(s)
             finally:
                 barrier.wait()
 
@@ -37,6 +49,6 @@ class TestRotating(TestCase):
         b.wait()
 
         base_filename = os.path.basename(filename)
-        count = len([x for x in os.listdir(os.path.dirname(filename)) if base_filename in x])
-        self.assertEqual(20, count)
-        print('End')
+        count = sum([_file_len('{}/{}'.format(os.path.dirname(filename), x))
+                     for x in os.listdir(os.path.dirname(filename)) if base_filename in x]) - 1
+        self.assertEqual(self.PROCESS_COUNT, count)
