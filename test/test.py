@@ -19,8 +19,8 @@ def _file_len(fname):
 
 class TestRotating(TestCase):
     FILE_SIZE = 20
-    FILE_COUNT = 100
-    PROCESS_COUNT = 20
+    FILE_COUNT = 200
+    PROCESS_COUNT = 300
 
     def test(self):
         filename = str(tempfile.mktemp())
@@ -51,4 +51,4 @@ class TestRotating(TestCase):
         base_filename = os.path.basename(filename)
         count = sum([_file_len('{}/{}'.format(os.path.dirname(filename), x))
                      for x in os.listdir(os.path.dirname(filename)) if base_filename in x]) - 1
-        self.assertEqual(self.PROCESS_COUNT, count)
+        self.assertEqual(self.FILE_COUNT + 1, count)

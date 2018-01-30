@@ -2,6 +2,7 @@ from logging import handlers, LogRecord
 import fcntl
 import os
 
+
 def mprolling(supertype, *args, **kwargs):
     class _MP(supertype):
         def __init__(self, *args, **kwargs):
@@ -10,29 +11,9 @@ def mprolling(supertype, *args, **kwargs):
             self.inode = os.stat(self.baseFilename).st_ino
 
         def emit(self, record):
-            fcntl.flock(self.fd, fcntl.LOCK_SH)
-            if self.inode != os.stat(self.baseFilename).st_ino:
-                if self.stream:
-                    self.stream.close()
-                    self.stream = None
-                self.inode = os.stat(self.baseFilename).st_ino
-                fcntl.flock(self.fd, fcntl.LOCK_UN)
-                self.emit(record)
-            else:
-                supertype.emit(self, record)
-                fcntl.flock(self.fd, fcntl.LOCK_UN)
-
-        def doRollover(self):
+            fcntl.flock(self.fd, fcntl.LOCK_EX)
             try:
-                fcntl.flock(self.fd, fcntl.LOCK_EX)
-                if self.inode != os.stat(self.baseFilename).st_ino:
-                    if self.stream:
-                        self.stream.close()
-                        self.stream = None
-                    self.inode = os.stat(self.baseFilename).st_ino
-
-                if self.shouldRollover(LogRecord(None, None, None, None, None, None, None)):
-                    supertype.doRollover(self)
+                supertype.emit(self, record)
             finally:
                 fcntl.flock(self.fd, fcntl.LOCK_UN)
 
